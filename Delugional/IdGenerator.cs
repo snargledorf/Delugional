@@ -4,10 +4,12 @@ namespace Delugional
     {
         public static IdGenerator Default { get; } = new IdGenerator();
 
-        private uint currentId;
+        private int currentId;
 
-        public uint Next()
+        public int Next()
         {
+            if (currentId < 0)
+                currentId = 0;
             return currentId++;
         }
     }

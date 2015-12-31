@@ -1,20 +1,33 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
+using System.Text;
 using Ionic.Zlib;
 
 namespace Delugional.Utility
 {
     internal static class Zlib
     {
-        public static string Decompress(string s)
+        public static byte[] Decompress(byte[] bytes, int offset, int length)
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(s);
-            return ZlibStream.UncompressString(bytes);
+            using (var ms = new MemoryStream())
+            {
+                using (var zlib = new ZlibStream(ms, CompressionMode.Decompress))
+                {
+                    zlib.Write(bytes, offset, length);
+                }
+
+                return ms.ToArray();
+            }
         }
 
-        public static string Compress(string s)
+        public static byte[] Decompress(byte[] bytes)
         {
-            byte[] bytes = ZlibStream.CompressString(s);
-            return Encoding.UTF8.GetString(bytes);
+            return Decompress(bytes, 0, bytes.Length);
+        }
+
+        public static byte[] Compress(string s)
+        {
+            return ZlibStream.CompressString(s);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace DelugionalTests
             using (var connection = new MockDelugeConnection())
             {
                 var deluge = new Deluge(connection);
-                string torrentId = await deluge.AddTorrentFile("torrent_file", "torrent_file_contents");
+                string torrentId = await deluge.AddTorrentFile("torrent_file", new byte[]{1,2,3,4});
 
                 Assert.IsNotNull(torrentId, "torrentId != null");
             }

@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Delugional.Utility;
+using MiscUtil.Conversion;
 using rencodesharp;
 
 namespace Delugional
@@ -11,8 +13,8 @@ namespace Delugional
     public interface IDelugeProtocol : IDisposable
     {
         void Close();
-        Task Write(RpcCall[] calls);
-        Task<object[]> Read();
+        Task Send(params RpcCall[] calls);
+        Task<object[]> Receive();
     }
 
     public abstract class DelugeProtocol : IDelugeProtocol
@@ -30,9 +32,9 @@ namespace Delugional
         {
         }
 
-        public abstract Task Write(RpcCall[] calls);
+        public abstract Task Send(params RpcCall[] calls);
 
-        public abstract Task<object[]> Read();
+        public abstract Task<object[]> Receive();
 
         public void Dispose()
         {
@@ -63,36 +65,58 @@ namespace Delugional
     {
         private const int BufferSize = 1024;
 
-        private StreamReader reader;
-        private StreamWriter writer;
+        private readonly List<byte> readBuffer = new List<byte>();
+
+        private BinaryReader reader;
+        private BinaryWriter writer;
 
         public DelugeProtocolV3(Stream stream) 
             : base(stream)
         {
-            reader = new StreamReader(stream);
-            writer = new StreamWriter(stream);
+            reader = new BinaryReader(stream, Encoding.ASCII);
+            writer = new BinaryWriter(stream, Encoding.ASCII);
         }
 
-        public override Task Write(RpcCall[] calls)
+        public override Task Send(params RpcCall[] calls)
         {
             object[] messages = CreateMessages(calls);
-            string encodedMessages = Rencode.Encode(messages);
-            string compressedMessages = Zlib.Compress(encodedMessages);
+            string encoded = Rencode.Encode(messages);
+            byte[] compressed = Zlib.Compress(encoded);
 
-            return writer.WriteAsync(compressedMessages);
+            return Task.Run(() => writer.Write(compressed));
         }
 
-        public override async Task<object[]> Read()
+        public override Task<object[]> Receive()
         {
-            var buffer = new char[BufferSize];
+            return Task.Run(() =>
+            {
+                while (true)
+                {
+                    byte[] bytes = reader.ReadBytes(BufferSize);
 
-            int charactersRead = await reader.ReadAsync(buffer, 0, BufferSize);
+                    if (bytes.Length == 0)
+                        return null;
 
-            var data = new string(buffer, 0, charactersRead);
+                    readBuffer.AddRange(bytes);
 
-            string decompressedMessage = Zlib.Decompress(data);
+                    try
+                    {
+                        bytes = Zlib.Decompress(readBuffer.ToArray());
 
-            return Rencode.Decode(decompressedMessage) as object[];
+                        var result = Rencode.Decode(bytes) as object[];
+
+                        if (result != null)
+                        {
+                            readBuffer.Clear();
+                            return result;
+                        }
+                    }
+                    catch
+                    {
+                        // Message is incomplete
+                    }
+                }
+            });
         }
 
         public override void Close()
@@ -108,15 +132,18 @@ namespace Delugional
 
         private static object[] CreateMessages(IEnumerable<RpcCall> calls)
         {
-            return calls.Select(call => new object[]
+            return calls.Select(CreateMessage).ToArray();
+        }
+
+        private static object CreateMessage(RpcCall call)
+        {
+            return new object[]
             {
                 IdGenerator.Default.Next(),
                 call.Method,
                 call.Args,
-                call.Options
-            })
-                .Cast<object>()
-                .ToArray();
+                call.Kwargs
+            };
         }
     }
 }

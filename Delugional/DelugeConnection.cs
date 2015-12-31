@@ -3,7 +3,6 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace Delugional
@@ -13,7 +12,7 @@ namespace Delugional
         bool IsOpen { get; }
         Task Open();
         void Close();
-        Task<object[]> Send(params RpcCall[] calls);
+        Task<object[]> Call(params RpcCall[] calls);
     }
 
     public sealed class DelugeConnection : IDelugeConnection
@@ -28,8 +27,8 @@ namespace Delugional
 
         private bool disposed;
 
-        public DelugeConnection()
-            : this(IPAddress.Loopback, 58846)
+        public DelugeConnection(bool ssl = true)
+            : this(IPAddress.Loopback, 58846, ssl)
         {
         }
         
@@ -95,12 +94,17 @@ namespace Delugional
             protocol = null;
         }
 
-        public async Task<object[]> Send(params RpcCall[] calls)
+        public async Task<object[]> Call(params RpcCall[] calls)
         {
             CheckDisposed();
+            
+            await protocol.Send(calls);
+            object[] result = await protocol.Receive();
 
-            await protocol.Write(calls);
-            return await protocol.Read();
+            if (result == null)
+                Close();
+
+            return result;
         }
 
         public void Dispose()

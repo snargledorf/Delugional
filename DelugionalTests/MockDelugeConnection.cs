@@ -18,7 +18,7 @@ namespace DelugionalTests
             IsOpen = false;
         }
 
-        public Task<object[]> Send(params RpcCall[] calls)
+        public Task<object[]> Call(params RpcCall[] calls)
         {
             object[] results = GetResults(calls);
             return Task.FromResult(results);

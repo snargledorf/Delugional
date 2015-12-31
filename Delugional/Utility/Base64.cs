@@ -8,6 +8,11 @@ namespace Delugional.Utility
         internal static string Encode(string s)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(s);
+            return Encode(bytes);
+        }
+
+        internal static string Encode(byte[] bytes)
+        {
             return Convert.ToBase64String(bytes);
         }
 
