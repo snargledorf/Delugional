@@ -44,13 +44,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthLevels.cs" />
     <Compile Include="Deluge.cs" />
-    <Compile Include="DelugeConnection.cs" />
     <Compile Include="DelugeProtocol.cs" />
     <Compile Include="IdGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RpcCall.cs" />
+    <Compile Include="RpcRequest.cs" />
     <Compile Include="Utility\Base64.cs" />
+    <Compile Include="Utility\Conversions.cs" />
     <Compile Include="Utility\Zlib.cs" />
   </ItemGroup>
   <ItemGroup>

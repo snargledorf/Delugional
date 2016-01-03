@@ -1,6 +1,6 @@
 namespace Delugional
 {
-    internal class IdGenerator
+    public class IdGenerator
     {
         public static IdGenerator Default { get; } = new IdGenerator();
 

@@ -52,11 +52,12 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="MockDelugeConnection.cs" />
+    <Compile Include="MockDeluge.cs" />
     <Compile Include="DelugeTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RencodeTests.cs" />
     <Compile Include="DelugeConnectionTests.cs" />
+    <Compile Include="ZlibTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Delugional\Delugional.csproj">

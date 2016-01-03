@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using Delugional.Utility;
-using MiscUtil.Conversion;
 using rencodesharp;
 
 namespace Delugional
@@ -13,7 +13,7 @@ namespace Delugional
     public interface IDelugeProtocol : IDisposable
     {
         void Close();
-        Task Send(params RpcCall[] calls);
+        Task Send(string method, object[] args = null, Dictionary<object, object> kwargs = null);
         Task<object[]> Receive();
     }
 
@@ -30,9 +30,11 @@ namespace Delugional
 
         public virtual void Close()
         {
+            BaseStream?.Close();
+            BaseStream?.Dispose();
         }
 
-        public abstract Task Send(params RpcCall[] calls);
+        public abstract Task Send(string method, object[] args = null, Dictionary<object, object> kwargs = null);
 
         public abstract Task<object[]> Receive();
 
@@ -59,90 +61,92 @@ namespace Delugional
         {
             Dispose(false);
         }
+
+        public static Task<DelugeProtocol> Create(string host, int port, bool ssl)
+        {
+            return CreateV3Protocol(host, port, ssl);
+        }
+
+        private static async Task<DelugeProtocol> CreateV3Protocol(string host, int port, bool ssl)
+        {
+            var client = new TcpClient(host, port);
+
+            Stream stream = client.GetStream();
+
+            if (ssl)
+            {
+                var sslStream = new SslStream(stream, false, (sender, certificate, chain, errors) => true);
+                await sslStream.AuthenticateAsClientAsync(host);
+                stream = sslStream;
+            }
+
+            return new DelugeProtocolV3(stream);
+        }
     }
 
     public class DelugeProtocolV3 : DelugeProtocol
     {
         private const int BufferSize = 1024;
 
-        private readonly List<byte> readBuffer = new List<byte>();
+        private static readonly Dictionary<object, object> EmptyKwargs = new Dictionary<object, object>();
+        private static readonly object[] EmptyArgs = new object[0];
 
-        private BinaryReader reader;
-        private BinaryWriter writer;
+        private readonly List<byte> readBuffer = new List<byte>();
 
         public DelugeProtocolV3(Stream stream) 
             : base(stream)
         {
-            reader = new BinaryReader(stream, Encoding.ASCII);
-            writer = new BinaryWriter(stream, Encoding.ASCII);
         }
 
-        public override Task Send(params RpcCall[] calls)
+        public override Task Send(string method, object[] args = null, Dictionary<object, object> kwargs = null)
         {
-            object[] messages = CreateMessages(calls);
-            string encoded = Rencode.Encode(messages);
-            byte[] compressed = Zlib.Compress(encoded);
+            object formatted = FormatRequestMessage(method, args, kwargs);
+            string encoded = Rencode.Encode(formatted);
+            byte[] encodedBytes = encoded.Select(Convert.ToByte).ToArray();
+            byte[] compressed = Zlib.Deflate(encodedBytes);
 
-            return Task.Run(() => writer.Write(compressed));
+            return BaseStream.WriteAsync(compressed, 0, compressed.Length);
         }
 
-        public override Task<object[]> Receive()
+        public override async Task<object[]> Receive()
         {
-            return Task.Run(() =>
+            while (true)
             {
-                while (true)
+                var buffer = new byte[BufferSize];
+                int read = await BaseStream.ReadAsync(buffer, 0, BufferSize);
+
+                if (read == 0)
+                    return null;
+
+                IEnumerable<byte> bytesRead = buffer.Where((b, i) => i < read);
+                readBuffer.AddRange(bytesRead);
+
+                try
                 {
-                    byte[] bytes = reader.ReadBytes(BufferSize);
+                    buffer = Zlib.Inflate(readBuffer.ToArray());
+                    readBuffer.Clear();
 
-                    if (bytes.Length == 0)
-                        return null;
-
-                    readBuffer.AddRange(bytes);
-
-                    try
-                    {
-                        bytes = Zlib.Decompress(readBuffer.ToArray());
-
-                        var result = Rencode.Decode(bytes) as object[];
-
-                        if (result != null)
-                        {
-                            readBuffer.Clear();
-                            return result;
-                        }
-                    }
-                    catch
-                    {
-                        // Message is incomplete
-                    }
+                    string encoded = string.Concat(buffer.Select(b => (char) b));
+                    return Rencode.Decode(encoded) as object[];
                 }
-            });
+                catch
+                {
+                    // Message is incomplete
+                }
+            }
         }
 
-        public override void Close()
-        {
-            reader?.Close();
-            reader?.Dispose();
-            reader = null;
-
-            writer?.Close();
-            writer?.Dispose();
-            writer = null;
-        }
-
-        private static object[] CreateMessages(IEnumerable<RpcCall> calls)
-        {
-            return calls.Select(CreateMessage).ToArray();
-        }
-
-        private static object CreateMessage(RpcCall call)
+        private static object FormatRequestMessage(string method, object[] args, Dictionary<object, object> kwargs)
         {
             return new object[]
             {
-                IdGenerator.Default.Next(),
-                call.Method,
-                call.Args,
-                call.Kwargs
+                new object[]
+                {
+                    IdGenerator.Default.Next(),
+                    method,
+                    args ?? EmptyArgs,
+                    kwargs ?? EmptyKwargs
+                }
             };
         }
     }
