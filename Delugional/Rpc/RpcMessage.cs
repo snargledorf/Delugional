@@ -1,55 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 
-namespace Delugional
+namespace Delugional.Rpc
 {
-    public sealed class RpcRequest
-    {
-        private RpcRequest(string method, List<object> args, Dictionary<object, object> kwargs)
-        {
-            Method = method;
-            Args = args;
-            Kwargs = kwargs;
-        }
-
-        public string Method { get; }
-
-        public Dictionary<object, object> Kwargs { get; }
-
-        public List<object> Args { get; }
-
-        public class Builder
-        {
-            private readonly string method;
-
-            private readonly List<object> args = new List<object>();
-
-            private readonly Dictionary<object, object> kwargs = new Dictionary<object, object>(); 
-
-            public Builder(string method)
-            {
-                this.method = method;
-            }
-
-            public Builder AddArg(object arg)
-            {
-                args.Add(arg);
-                return this;
-            }
-
-            public Builder AddKeywordArg(object key, object value)
-            {
-                kwargs.Add(key, value);
-                return this;
-            }
-
-            public RpcRequest Build()
-            {
-                return new RpcRequest(method, args, kwargs);
-            }
-        }
-    }
-
     public class RpcResponse : RpcMessage
     {
         public RpcResponse(int id, object data)
@@ -61,18 +13,11 @@ namespace Delugional
         public object Data { get; }
     }
 
-    public class RpcEvent : RpcMessage
+    public enum MessageType
     {
-        public RpcEvent(string eventName, object data) 
-            : base(-1, MessageType.Response)
-        {
-            EventName = eventName;
-            Data = data;
-        }
-
-        public string EventName { get; }
-
-        public object Data { get; }
+        Response = 1,
+        Error = 2,
+        Event = 3
     }
 
     public class RpcError : RpcMessage
@@ -90,6 +35,20 @@ namespace Delugional
         public string ExceptionMessage { get; }
 
         public string Traceback { get; }
+    }
+
+    public class RpcEvent : RpcMessage
+    {
+        public RpcEvent(string eventName, object data) 
+            : base(-1, MessageType.Response)
+        {
+            EventName = eventName;
+            Data = data;
+        }
+
+        public string EventName { get; }
+
+        public object Data { get; }
     }
 
     public abstract class RpcMessage
@@ -146,12 +105,5 @@ namespace Delugional
 
             return new RpcError(id, exceptionType, exceptionMessage, traceback);
         }
-    }
-
-    public enum MessageType
-    {
-        Response = 1,
-        Error = 2,
-        Event = 3
     }
 }

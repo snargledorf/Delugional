@@ -52,11 +52,16 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="MockDeluge.cs" />
-    <Compile Include="DelugeTests.cs" />
+    <Compile Include="DelugeRpcTests.cs" />
+    <Compile Include="MockDelugeRpcConnection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RencodeTests.cs" />
-    <Compile Include="DelugeConnectionTests.cs" />
+    <Compile Include="DelugeConnectionV3Tests.cs" />
+    <Compile Include="Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ZlibTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -68,6 +73,12 @@
       <Project>{07a4623c-c9cd-474c-8793-1817e81e83d4}</Project>
       <Name>rencode-sharp</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

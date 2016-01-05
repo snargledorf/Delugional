@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Delugional.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using rencodesharp;
@@ -15,7 +13,7 @@ namespace DelugionalTests
         public void Deflate()
         {
             string hello = "hello world";
-            byte[] bytes = Zlib.Deflate(hello);
+            byte[] bytes = Zlib.DeflateString(hello);
             string base64 = Base64.Encode(bytes);
         }
 
