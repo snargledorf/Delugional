@@ -13,7 +13,7 @@ namespace Delugional.Rpc
 
         Task Send(string method, params object[] args);
         Task Send(string method, IDictionary<string, object> kwargs, params object[] args);
-        Task<object[]> Receive();
+        Task<object[][]> Receive();
     }
 
     public abstract class DelugeRpcConnection : IDelugeRpcConnection
@@ -38,7 +38,7 @@ namespace Delugional.Rpc
 
         public abstract Task Send(string method, IDictionary<string, object> kwargs, params object[] args);
 
-        public abstract Task<object[]> Receive();
+        public abstract Task<object[][]> Receive();
 
         public void Dispose()
         {

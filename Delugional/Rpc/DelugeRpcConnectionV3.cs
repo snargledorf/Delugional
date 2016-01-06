@@ -74,7 +74,7 @@ namespace Delugional.Rpc
             }
         }
 
-        public override async Task<object[]> Receive()
+        public override async Task<object[][]> Receive()
         {
             CheckDisposed();
 
@@ -89,22 +89,31 @@ namespace Delugional.Rpc
                 IEnumerable<byte> bytesRead = buffer.Where((b, i) => i < read);
                 readBuffer.AddRange(bytesRead);
 
-                object[] result;
                 try
                 {
                     byte[] inflated = Zlib.Inflate(readBuffer.ToArray());
                     string encoded = string.Concat(inflated.Select(Convert.ToChar));
-                    result = Rencode.Decode(encoded) as object[];
+                    var result = Rencode.Decode(encoded) as object[];
+                    if (result == null)
+                        return null;
+
+                    var messages = new List<object[]>();
+
+                    const int partsPerMessage = 3;
+                    for (int skip = 0; skip < result.Length; skip+= partsPerMessage)
+                    {
+                        object[] message = result.Skip(skip).Take(partsPerMessage).ToArray();
+                        messages.Add(message);
+                    }
+
+                    readBuffer.Clear();
+
+                    return messages.ToArray();
                 }
                 catch
                 {
                     // Message is incomplete
-                    continue;
                 }
-
-                readBuffer.Clear();
-
-                return result;
             }
         }
 

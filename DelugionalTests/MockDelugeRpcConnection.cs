@@ -12,10 +12,10 @@ namespace DelugionalTests
             return Task.Delay(0);
         }
 
-        public override Task<object[]> Receive()
+        public override Task<object[][]> Receive()
         {
             // TODO Result result for calls
-            return Task.FromResult(new object[0]);
+            return Task.FromResult(new object[0][]);
         }
     }
 }

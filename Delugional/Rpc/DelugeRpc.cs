@@ -134,7 +134,7 @@ namespace Delugional.Rpc
             CheckDisposed();
             
             await connection.Send(request.Method, request.Kwargs, request.Args.ToArray());
-            object[] result = await connection.Receive();
+            object[][] result = await connection.Receive();
 
             if (result == null)
             {
@@ -142,7 +142,8 @@ namespace Delugional.Rpc
                 throw new Exception("Connection closed unexpectedly");
             }
 
-            RpcMessage rpcMessage = RpcMessage.Create(result);
+            object[] messageParts = result.First();
+            RpcMessage rpcMessage = RpcMessage.Create(messageParts);
 
             RpcResponse response = CheckResultMessage(rpcMessage);
 
