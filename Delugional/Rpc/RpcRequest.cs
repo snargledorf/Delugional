@@ -6,15 +6,23 @@ namespace Delugional.Rpc
 {
     public sealed class RpcRequest
     {
-        public RpcRequest(string method, IEnumerable<object> args = null, Dictionary<string, object> kwargs = null)
+        public RpcRequest(string method, IEnumerable<object> args = null, IDictionary<string, object> kwargs = null)
+            : this(IdGenerator.Default.Next(), method, args, kwargs)
+        {
+        }
+
+        public RpcRequest(int id, string method, IEnumerable<object> args = null, IDictionary<string, object> kwargs = null)
         {
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument is null or whitespace", nameof(method));
-            
+
+            Id = id;
             Method = method;
             Args = args?.ToList() ?? new List<object>();
             Kwargs = kwargs ?? new Dictionary<string, object>();
         }
+
+        public int Id { get; }
 
         public string Method { get; }
 

@@ -16,9 +16,6 @@ namespace Delugional.Rpc
     {
         private const int BufferSize = 4096;
 
-        private static readonly Dictionary<object, object> EmptyKwargs = new Dictionary<object, object>();
-        private static readonly object[] EmptyArgs = new object[0];
-
         private readonly List<byte> readBuffer = new List<byte>();
 
         private readonly string host;
@@ -60,11 +57,16 @@ namespace Delugional.Rpc
             this.client = client;
         }
 
-        public override async Task Send(string method, IDictionary<string, object> kwargs, params object[] args)
+        public override Task Send(RpcRequest request)
+        {
+            return Send(new[] {request});
+        }
+
+        public override async Task Send(IEnumerable<RpcRequest> requests)
         {
             CheckDisposed();
 
-            object formatted = FormatRequestMessage(method, kwargs, args);
+            object formatted = FormatRequestMessages(requests);
             string encoded = Rencode.Encode(formatted);
             byte[] encodedBytes = encoded.Select(Convert.ToByte).ToArray();
 
@@ -74,7 +76,7 @@ namespace Delugional.Rpc
             }
         }
 
-        public override async Task<object[][]> Receive()
+        public override async Task<RpcMessage[]> Receive()
         {
             CheckDisposed();
 
@@ -97,12 +99,13 @@ namespace Delugional.Rpc
                     if (result == null)
                         return null;
 
-                    var messages = new List<object[]>();
+                    var messages = new List<RpcMessage>();
 
                     const int partsPerMessage = 3;
                     for (int skip = 0; skip < result.Length; skip+= partsPerMessage)
                     {
-                        object[] message = result.Skip(skip).Take(partsPerMessage).ToArray();
+                        object[] messageParts = result.Skip(skip).Take(partsPerMessage).ToArray();
+                        RpcMessage message = RpcMessage.Create(messageParts);
                         messages.Add(message);
                     }
 
@@ -127,18 +130,15 @@ namespace Delugional.Rpc
             client = null;
         }
 
-        private static object FormatRequestMessage(string method, IDictionary<string, object> kwargs, object[] args)
+        private static object FormatRequestMessages(IEnumerable<RpcRequest> requests)
         {
-            return new object[]
+            return requests.Select(request => new object[]
             {
-                new object[]
-                {
-                    IdGenerator.Default.Next(),
-                    method,
-                    args ?? EmptyArgs,
-                    kwargs?.ToObjectDictionary() ?? EmptyKwargs
-                }
-            };
+                request.Id,
+                request.Method,
+                request.Args.ToArray(),
+                request.Kwargs.ToObjectDictionary()
+            }).ToObjectArray();
         }
     }
 }

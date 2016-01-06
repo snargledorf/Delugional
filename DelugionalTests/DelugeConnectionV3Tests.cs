@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Delugional;
 using Delugional.Rpc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

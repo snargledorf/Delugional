@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Delugional.Rpc
@@ -13,7 +14,13 @@ namespace Delugional.Rpc
 
         Task Send(string method, params object[] args);
         Task Send(string method, IDictionary<string, object> kwargs, params object[] args);
-        Task<object[][]> Receive();
+        Task Send(int id, string method, params object[] args);
+        Task Send(int id, string method, IDictionary<string, object> kwargs, params object[] args);
+        Task Send(RpcRequest request);
+        Task Send(params RpcRequest[] requests);
+        Task Send(IEnumerable<RpcRequest> requests);
+
+        Task<RpcMessage[]> Receive();
     }
 
     public abstract class DelugeRpcConnection : IDelugeRpcConnection
@@ -36,9 +43,41 @@ namespace Delugional.Rpc
             return Send(method, null, args);
         }
 
-        public abstract Task Send(string method, IDictionary<string, object> kwargs, params object[] args);
+        public virtual Task Send(string method, IDictionary<string, object> kwargs, params object[] args)
+        {
+            return Send(IdGenerator.Default.Next(), method, kwargs, args);
+        }
 
-        public abstract Task<object[][]> Receive();
+        public virtual Task Send(int id, string method, params object[] args)
+        {
+            return Send(id, method, null, args);
+        }
+
+        public virtual Task Send(int id, string method, IDictionary<string, object> kwargs, params object[] args)
+        {
+            var request = new RpcRequest(id, method, args, kwargs);
+            return Send(request);
+        }
+
+        public virtual Task Send(RpcRequest request)
+        {
+            return Task.FromResult(-1);
+        }
+
+        public virtual Task Send(params RpcRequest[] requests)
+        {
+            return Send((IEnumerable<RpcRequest>)requests);
+        }
+
+        public virtual async Task Send(IEnumerable<RpcRequest> requests)
+        {
+            foreach (RpcRequest request in requests)
+            {
+                await Send(request);
+            }
+        }
+
+        public abstract Task<RpcMessage[]> Receive();
 
         public void Dispose()
         {

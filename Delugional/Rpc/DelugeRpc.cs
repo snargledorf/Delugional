@@ -12,13 +12,19 @@ namespace Delugional.Rpc
         Task<AuthLevels> LoginAsync(string username, string password);
 
         Task<object> Call(string method, params object[] args);
-        Task<object> Call(string method, Dictionary<string, object> kwargs, params object[] args);
+        Task<object> Call(int id, string method, params object[] args);
+        Task<object> Call(string method, IDictionary<string, object> kwargs, params object[] args);
+        Task<object> Call(int id, string method, IDictionary<string, object> kwargs, params object[] args);
         Task<object> Call(RpcRequest request);
+        Task<object[]> Call(params RpcRequest[] requests);
+        Task<object[]> Call(IEnumerable<RpcRequest> requests);
     }
 
     public class DelugeRpc : Deluge, IDelugeRpc
     {
         private readonly IDelugeRpcConnection connection;
+        
+        private readonly WhenList<RpcMessage> receivedMessages = new WhenList<RpcMessage>();
 
         public DelugeRpc(IDelugeRpcConnection connection)
         {
@@ -26,6 +32,8 @@ namespace Delugional.Rpc
                 throw new InvalidOperationException("Connection not open");
 
             this.connection = connection;
+
+            BeginReceiving();
         }
 
         public virtual async Task<AuthLevels> LoginAsync(string username, string password)
@@ -117,12 +125,22 @@ namespace Delugional.Rpc
             return Call(method, null, args);
         }
 
-        public virtual Task<object> Call(string method, Dictionary<string, object> kwargs, params object[] args)
+        public virtual Task<object> Call(int id, string method, params object[] args)
+        {
+            return Call(method, null, args);
+        }
+
+        public virtual Task<object> Call(string method, IDictionary<string, object> kwargs, params object[] args)
+        {
+            return Call(IdGenerator.Default.Next(), method, kwargs, args);
+        }
+
+        public virtual Task<object> Call(int id, string method, IDictionary<string, object> kwargs, params object[] args)
         {
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument is null or whitespace", nameof(method));
 
-            var request = new RpcRequest(method, args, kwargs);
+            var request = new RpcRequest(id, method, args, kwargs);
             return Call(request);
         }
 
@@ -131,23 +149,39 @@ namespace Delugional.Rpc
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
+            object[] results = await Call(new[] {request});
+            return results.First();
+        }
+
+        public virtual Task<object[]> Call(params RpcRequest[] requests)
+        {
+            return Call((IEnumerable<RpcRequest>) requests);
+        }
+
+        public virtual async Task<object[]> Call(IEnumerable<RpcRequest> requests)
+        {
+            if (requests == null)
+                throw new ArgumentNullException(nameof(requests));
+
+            requests = requests.ToArray();
+
+            if (!requests.Any())
+                throw new ArgumentException("Argument is empty collection", nameof(requests));
+
+            if (requests.Any(request => request == null))
+                throw new ArgumentException("Argument contains null items", nameof(requests));
+
             CheckDisposed();
-            
-            await connection.Send(request.Method, request.Kwargs, request.Args.ToArray());
-            object[][] result = await connection.Receive();
 
-            if (result == null)
-            {
-                Close();
-                throw new Exception("Connection closed unexpectedly");
-            }
+            await connection.Send(requests);
 
-            object[] messageParts = result.First();
-            RpcMessage rpcMessage = RpcMessage.Create(messageParts);
+            IEnumerable<Task<RpcMessage>> getTasks = requests.Select(request => receivedMessages.GetWhen(m => m.Id == request.Id));
 
-            RpcResponse response = CheckResultMessage(rpcMessage);
+            RpcMessage[] messages = await Task.WhenAll(getTasks);
 
-            return response.Data;
+            IEnumerable<RpcResponse> responses = CheckResponses(messages);
+
+            return responses.Select(response => response.Data).ToArray();
         }
 
         public override void Close()
@@ -156,17 +190,64 @@ namespace Delugional.Rpc
             connection.Dispose();
         }
 
-        protected RpcResponse CheckResultMessage(RpcMessage result)
+        protected IEnumerable<RpcResponse> CheckResponses(RpcMessage[] messages)
+        {
+            var exceptions = new List<Exception>();
+            var responses = new List<RpcResponse>();
+
+            foreach (RpcMessage message in messages)
+            {
+                try
+                {
+                    RpcResponse response = CheckResponse(message);
+                    responses.Add(response);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions.Any())
+                throw new AggregateException(exceptions);
+
+            return responses;
+        }
+
+        protected RpcResponse CheckResponse(RpcMessage result)
         {
             var error = result as RpcError;
             if (error != null)
-                throw new Exception(error.ExceptionMessage);
+                throw new RpcErrorException(error);
 
-            var response = result as RpcResponse;
-            if (response == null)
-                throw new Exception("Invalid response type: " + result.GetType());
+            return (RpcResponse)result;
+        }
 
-            return response;
+        private async void BeginReceiving()
+        {
+            try
+            {
+                while (connection.IsOpen)
+                {
+                    RpcMessage[] messages = await connection.Receive();
+
+                    foreach (RpcMessage message in messages)
+                    {
+                        if (message.Type == MessageType.Response || message.Type == MessageType.Error)
+                        {
+                            receivedMessages.Add(message);
+                        }
+                        else if (message.Type == MessageType.Event)
+                        {
+                            // TODO Events
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }

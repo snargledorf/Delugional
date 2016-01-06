@@ -99,9 +99,11 @@ namespace Delugional.Rpc
         private static RpcError CreateErrorMessage(object[] result)
         {
             int id = (int) result[1];
-            string exceptionType = (string) result[2];
-            string exceptionMessage = (string) result[3];
-            string traceback = (string) result[4];
+
+            var errorDetails = (object[]) result[2];
+            var exceptionType = (string)errorDetails[0];
+            var exceptionMessage = (string)errorDetails[1];
+            var traceback = (string)errorDetails[2];
 
             return new RpcError(id, exceptionType, exceptionMessage, traceback);
         }

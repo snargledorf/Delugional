@@ -47,6 +47,7 @@
     <Compile Include="AuthLevels.cs" />
     <Compile Include="Deluge.cs" />
     <Compile Include="Filter.cs" />
+    <Compile Include="Rpc\RpcErrorException.cs" />
     <Compile Include="States.cs" />
     <Compile Include="Rpc\DelugeRpcConnection.cs" />
     <Compile Include="Rpc\DelugeRpcConnectionV3.cs" />
