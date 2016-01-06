@@ -60,6 +60,7 @@
     <Compile Include="Utility\Base64.cs" />
     <Compile Include="Utility\ConversionExtensions.cs" />
     <Compile Include="Utility\EnumExtensions.cs" />
+    <Compile Include="Utility\WhenList.cs" />
     <Compile Include="Utility\Zlib.cs" />
   </ItemGroup>
   <ItemGroup>
