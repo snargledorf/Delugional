@@ -21,8 +21,6 @@ namespace Delugional.Rpc
 
     public class DelugeRpc : Deluge, IDelugeRpc
     {
-        private readonly IDelugeRpcConnection connection;
-
         private readonly WhenableDictionary<int, RpcMessage> receivedMessages = new WhenableDictionary<int, RpcMessage>();
 
         public DelugeRpc(IDelugeRpcConnection connection)
@@ -30,15 +28,17 @@ namespace Delugional.Rpc
             if (!connection.IsOpen)
                 throw new InvalidOperationException("Connection not open");
 
-            this.connection = connection;
+            Connection = connection;
 
             BeginReceiving();
         }
 
+        public IDelugeRpcConnection Connection { get; }
+
         public override void Close()
         {
-            connection.Close();
-            connection.Dispose();
+            Connection.Close();
+            Connection.Dispose();
         }
 
         protected RpcResponse CheckResponse(RpcMessage result)
@@ -78,9 +78,9 @@ namespace Delugional.Rpc
         {
             try
             {
-                while (connection.IsOpen)
+                while (Connection.IsOpen)
                 {
-                    RpcMessage[] messages = await connection.Receive();
+                    RpcMessage[] messages = await Connection.Receive();
 
                     foreach (RpcMessage message in messages)
                     {
@@ -240,7 +240,7 @@ namespace Delugional.Rpc
 
             CheckDisposed();
 
-            await connection.Send(requests);
+            await Connection.Send(requests);
 
             IEnumerable<Task<RpcMessage>> getTasks =
                 requests.Select(CreateReceiveMessageTask);

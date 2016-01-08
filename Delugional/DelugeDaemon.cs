@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using Delugional.Rpc;
+using Delugional.Utility;
 
 namespace Delugional
 {
@@ -7,27 +10,65 @@ namespace Delugional
     {
         public static IDelugeDaemon Default { get; } = new DelugeDaemon();
 
-        public DelugeDaemon(string pathToDaemonExe = null)
+        private readonly string pathToDaemon;
+
+        public DelugeDaemon(string pathToDaemon = null)
         {
-            if (pathToDaemonExe == null)
-                pathToDaemonExe = FindDefaultDaemon();
+            if (pathToDaemon == null)
+                pathToDaemon = FindDefaultDaemon();
+
+            if (string.IsNullOrEmpty(pathToDaemon) || !File.Exists(pathToDaemon))
+                throw new FileNotFoundException("Deluge daemon executable not found", pathToDaemon);
+
+            this.pathToDaemon = pathToDaemon;
+
+            Process = ProcessHelper.GetProcessForExecutable(pathToDaemon);
         }
+
+        public Process Process { get; private set; }
 
         public void Dispose()
         {
             throw new System.NotImplementedException();
         }
 
-        public bool Running { get; }
+        public bool Running => ProcessHelper.IsExecutableRunning(pathToDaemon);
 
-        public void Start()
+        public bool Start()
         {
-            throw new System.NotImplementedException();
+            if (Running)
+            {
+                Process = ProcessHelper.GetProcessForExecutable(pathToDaemon);
+                return true;
+            }
+
+            var process = new Process { StartInfo = { FileName = pathToDaemon } };
+            if (process.Start())
+            {
+                Process = process;
+                return true;
+            }
+
+            return false;
         }
 
         public void Stop()
         {
-            throw new System.NotImplementedException();
+            if (!Running)
+                return;
+
+            if (Process == null)
+                Process = ProcessHelper.GetProcessForExecutable(pathToDaemon);
+
+            Process.Kill();
+            Process.WaitForExit();
+        }
+
+        public IDelugeRpc GetRpc()
+        {
+            var connection = new DelugeRpcConnectionV3();
+            connection.OpenAsync().Wait();
+            return new DelugeRpc(connection);
         }
 
         private string FindDefaultDaemon()

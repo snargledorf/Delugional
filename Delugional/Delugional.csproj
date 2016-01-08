@@ -36,6 +36,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,8 +46,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthLevels.cs" />
+    <Compile Include="DaemonResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DaemonResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Deluge.cs" />
+    <Compile Include="DelugeDaemon.cs" />
     <Compile Include="Filter.cs" />
+    <Compile Include="IDelugeDaemon.cs" />
+    <Compile Include="Utility\ProcessHelper.cs" />
     <Compile Include="Rpc\RpcErrorException.cs" />
     <Compile Include="States.cs" />
     <Compile Include="Rpc\DelugeRpcConnection.cs" />
@@ -74,6 +83,12 @@
       <Project>{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}</Project>
       <Name>Whenables</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DaemonResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>DaemonResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
