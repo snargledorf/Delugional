@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Delugional;
+using Delugional.Daemon;
 using Delugional.Rpc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -9,27 +10,26 @@ namespace DelugionalTests
     [TestClass]
     public class DelugeRpcTests
     {
-        private IDelugeRpcConnection connection;
+        private IDelugeDaemon daemon;
 
         [TestInitialize]
         public void Initialize()
         {
-            connection = new DelugeRpcConnectionV3();
-            connection.OpenAsync().Wait();
+            daemon = DelugeDaemon.Default;
+            if (!daemon.Running)
+                daemon.Start();
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            connection?.Close();
-            connection?.Dispose();
-            connection = null;
+            daemon.Stop();
         }
 
         [TestMethod]
         public async Task AddTorrentFile()
         {
-            using (var deluge = new DelugeRpc(connection))
+            using (IDelugeRpc deluge = await daemon.OpenRpcAsync())
             {
                 await deluge.LoginAsync(Resources.Username, Resources.Password);
 
@@ -44,7 +44,7 @@ namespace DelugionalTests
         [TestMethod]
         public async Task AddMagnetLink()
         {
-            using (var deluge = new DelugeRpc(connection))
+            using (IDelugeRpc deluge = await daemon.OpenRpcAsync())
             {
                 await deluge.LoginAsync(Resources.Username, Resources.Password);
 
@@ -59,7 +59,7 @@ namespace DelugionalTests
         [TestMethod]
         public async Task GetTorrentStatus()
         {
-            using (var deluge = new DelugeRpc(connection))
+            using (IDelugeRpc deluge = await daemon.OpenRpcAsync())
             {
                 await deluge.LoginAsync(Resources.Username, Resources.Password);
 
