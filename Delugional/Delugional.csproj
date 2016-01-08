@@ -54,7 +54,6 @@
     <Compile Include="Rpc\DelugeRpc.cs" />
     <Compile Include="IdGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Rpc\Utility\RpcConversions.cs" />
     <Compile Include="Rpc\RpcMessage.cs" />
     <Compile Include="Rpc\RpcRequest.cs" />
     <Compile Include="BuiltInStatuses.cs" />

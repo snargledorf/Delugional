@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Delugional.Rpc.Utility;
 using Delugional.Utility;
 
 namespace Delugional.Rpc
@@ -101,7 +100,7 @@ namespace Delugional.Rpc
 
         public override async Task<IDictionary<string, IDictionary<string, object>>> GetTorrentsStatusAsync(Filter filter = null, string[] statusKeys = null, bool diff = false)
         {
-            Dictionary<object, object> filters = RpcConversions.FilterToDictionary(filter).ToObjectDictionary();
+            Dictionary<object, object> filters = filter.ToDictionary().ToObjectDictionary();
 
             object result = await Call("core.get_torrents_status", filters, statusKeys.ToObjectArray(), diff);
             if (result == null)
