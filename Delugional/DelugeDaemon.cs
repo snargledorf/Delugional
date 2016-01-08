@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Delugional.Rpc;
 using Delugional.Utility;
 
@@ -64,10 +65,15 @@ namespace Delugional
             Process.WaitForExit();
         }
 
-        public IDelugeRpc GetRpc()
+        public IDelugeRpc OpenRpc()
+        {
+            return OpenRpcAsync().Result;
+        }
+
+        public async Task<IDelugeRpc> OpenRpcAsync()
         {
             var connection = new DelugeRpcConnectionV3();
-            connection.OpenAsync().Wait();
+            await connection.OpenAsync();
             return new DelugeRpc(connection);
         }
 

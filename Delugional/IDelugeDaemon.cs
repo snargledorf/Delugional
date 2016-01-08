@@ -9,6 +9,7 @@ namespace Delugional
         bool Start();
         void Stop();
 
-        IDelugeRpc GetRpc();
+        IDelugeRpc OpenRpc();
+        IDelugeRpc OpenRpcAsync();
     }
 }
