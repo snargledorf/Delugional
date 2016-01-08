@@ -9,13 +9,13 @@ namespace Delugional.Rpc
 {
     public interface IDelugeRpc : IDeluge
     {
-        Task<object> Call(string method, params object[] args);
-        Task<object> Call(int id, string method, params object[] args);
-        Task<object> Call(string method, IDictionary<string, object> kwargs, params object[] args);
-        Task<object> Call(int id, string method, IDictionary<string, object> kwargs, params object[] args);
-        Task<object> Call(RpcRequest request);
-        Task<object[]> Call(params RpcRequest[] requests);
-        Task<object[]> Call(IEnumerable<RpcRequest> requests);
+        Task<object> CallAsync(string method, params object[] args);
+        Task<object> CallAsync(int id, string method, params object[] args);
+        Task<object> CallAsync(string method, IDictionary<string, object> kwargs, params object[] args);
+        Task<object> CallAsync(int id, string method, IDictionary<string, object> kwargs, params object[] args);
+        Task<object> CallAsync(RpcRequest request);
+        Task<object[]> CallAsync(params RpcRequest[] requests);
+        Task<object[]> CallAsync(IEnumerable<RpcRequest> requests);
         Task<AuthLevels> LoginAsync(string username, string password);
     }
 
@@ -118,7 +118,7 @@ namespace Delugional.Rpc
             if (string.IsNullOrWhiteSpace(url))
                 throw new ArgumentException("Argument is null or whitespace", nameof(url));
 
-            return await Call("core.add_torrent_magnet", url, options?.ToObjectDictionary()) as string;
+            return await CallAsync("core.add_torrent_magnet", url, options?.ToObjectDictionary()) as string;
         }
 
         public override async Task<string> AddTorrentAsync(string fileName, byte[] fileDump, IDictionary<string, object> options = null)
@@ -132,14 +132,14 @@ namespace Delugional.Rpc
 
             string fileContents = Base64.Encode(fileDump);
 
-            return await Call("core.add_torrent_file", fileName, fileContents, options?.ToObjectDictionary()) as string;
+            return await CallAsync("core.add_torrent_file", fileName, fileContents, options?.ToObjectDictionary()) as string;
         }
 
         public override async Task<IDictionary<string, IDictionary<string, object>>> GetTorrentsStatusAsync(Filter filter = null, string[] statusKeys = null, bool diff = false)
         {
             Dictionary<object, object> filters = filter.ToDictionary().ToObjectDictionary();
 
-            object result = await Call("core.get_torrents_status", filters, statusKeys.ToObjectArray(), diff);
+            object result = await CallAsync("core.get_torrents_status", filters, statusKeys.ToObjectArray(), diff);
             if (result == null)
                 return null;
 
@@ -161,7 +161,7 @@ namespace Delugional.Rpc
             if (string.IsNullOrWhiteSpace(torrentId))
                 throw new ArgumentException("Argument is null or whitespace", nameof(torrentId));
 
-            object result = await Call("core.get_torrent_status", torrentId, statusKeys.ToObjectArray(), diff);
+            object result = await CallAsync("core.get_torrent_status", torrentId, statusKeys.ToObjectArray(), diff);
 
             var statuses = (Dictionary<object, object>) result;
             return statuses?.ToDictionary(s => (string)s.Key, s => s.Value);
@@ -172,7 +172,7 @@ namespace Delugional.Rpc
             if (string.IsNullOrWhiteSpace(torrentId))
                 throw new ArgumentException("Argument is null or whitespace", nameof(torrentId));
 
-            object result = await Call("core.remove_torrent", torrentId, removeData);
+            object result = await CallAsync("core.remove_torrent", torrentId, removeData);
 
             return result is bool && (bool)result;
         }
@@ -184,48 +184,48 @@ namespace Delugional.Rpc
             if (torrentIds.Length == 0)
                 throw new ArgumentException("Argument is empty collection", nameof(torrentIds));
 
-            return await Call("core.remove_torrents", torrentIds.ToObjectArray(), removeData) as object[];
+            return await CallAsync("core.remove_torrents", torrentIds.ToObjectArray(), removeData) as object[];
         }
 
-        public virtual Task<object> Call(string method, params object[] args)
+        public virtual Task<object> CallAsync(string method, params object[] args)
         {
-            return Call(method, null, args);
+            return CallAsync(method, null, args);
         }
 
-        public virtual Task<object> Call(int id, string method, params object[] args)
+        public virtual Task<object> CallAsync(int id, string method, params object[] args)
         {
-            return Call(method, null, args);
+            return CallAsync(method, null, args);
         }
 
-        public virtual Task<object> Call(string method, IDictionary<string, object> kwargs, params object[] args)
+        public virtual Task<object> CallAsync(string method, IDictionary<string, object> kwargs, params object[] args)
         {
-            return Call(IdGenerator.Default.Next(), method, kwargs, args);
+            return CallAsync(IdGenerator.Default.Next(), method, kwargs, args);
         }
 
-        public virtual Task<object> Call(int id, string method, IDictionary<string, object> kwargs, params object[] args)
+        public virtual Task<object> CallAsync(int id, string method, IDictionary<string, object> kwargs, params object[] args)
         {
             if (string.IsNullOrWhiteSpace(method))
                 throw new ArgumentException("Argument is null or whitespace", nameof(method));
 
             var request = new RpcRequest(id, method, args, kwargs);
-            return Call(request);
+            return CallAsync(request);
         }
 
-        public virtual async Task<object> Call(RpcRequest request)
+        public virtual async Task<object> CallAsync(RpcRequest request)
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            object[] results = await Call(new[] {request});
+            object[] results = await CallAsync(new[] {request});
             return results.First();
         }
 
-        public virtual Task<object[]> Call(params RpcRequest[] requests)
+        public virtual Task<object[]> CallAsync(params RpcRequest[] requests)
         {
-            return Call((IEnumerable<RpcRequest>) requests);
+            return CallAsync((IEnumerable<RpcRequest>) requests);
         }
 
-        public virtual async Task<object[]> Call(IEnumerable<RpcRequest> requests)
+        public virtual async Task<object[]> CallAsync(IEnumerable<RpcRequest> requests)
         {
             if (requests == null)
                 throw new ArgumentNullException(nameof(requests));
@@ -259,7 +259,7 @@ namespace Delugional.Rpc
             if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException("Argument is null or whitespace", nameof(password));
             
-            return (AuthLevels)await Call("daemon.login", username, password);
+            return (AuthLevels)await CallAsync("daemon.login", username, password);
         }
     }
 }

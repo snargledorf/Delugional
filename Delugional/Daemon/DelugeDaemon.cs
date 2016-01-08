@@ -41,13 +41,11 @@ namespace Delugional.Daemon
             }
 
             var process = new Process { StartInfo = { FileName = pathToDaemon } };
-            if (process.Start())
-            {
-                Process = process;
-                return true;
-            }
+            if (!process.Start())
+                return false;
 
-            return false;
+            Process = process;
+            return true;
         }
 
         public void Stop()
@@ -74,32 +72,21 @@ namespace Delugional.Daemon
             return new DelugeRpc(connection);
         }
 
-        private string FindDefaultDaemon()
+        private static string FindDefaultDaemon()
         {
             return GetProgramFilesDaemon();
         }
 
-        private string GetProgramFilesDaemon()
+        private static string GetProgramFilesDaemon()
         {
-            string daemonPath = CreateProgramFilesFolderPath();
+            string daemonPath = DelugePaths.DaemonProgramFilesX86;
 
             if (File.Exists(daemonPath))
                 return daemonPath;
 
-            daemonPath = CreateProgramFilesFolderPath(true);
+            daemonPath = DelugePaths.DaemonProgramFiles;
 
             return File.Exists(daemonPath) ? daemonPath : null;
-        }
-
-        private string CreateProgramFilesFolderPath(bool x64 = false)
-        {
-            Environment.SpecialFolder folder = x64
-                ? Environment.SpecialFolder.ProgramFiles
-                : Environment.SpecialFolder.ProgramFilesX86;
-
-            string programFiles = Environment.GetFolderPath(folder);
-            string delugeFolder = Path.Combine(programFiles, DaemonResources.DelugeProgramFilesFolder);
-            return Path.Combine(delugeFolder, DaemonResources.DaemonExecutableName);
         }
 
         public void Dispose()

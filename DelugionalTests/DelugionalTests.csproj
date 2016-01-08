@@ -63,6 +63,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="DelugeDaemonTests.cs" />
+    <Compile Include="AuthFileTests.cs" />
     <Compile Include="ZlibTests.cs" />
   </ItemGroup>
   <ItemGroup>

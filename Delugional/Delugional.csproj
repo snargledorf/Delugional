@@ -45,16 +45,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AuthFile.cs" />
+    <Compile Include="AuthFileReader.cs" />
+    <Compile Include="AuthFileWriter.cs" />
     <Compile Include="AuthLevels.cs" />
-    <Compile Include="DaemonResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>DaemonResources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Deluge.cs" />
     <Compile Include="Daemon\DelugeDaemon.cs" />
+    <Compile Include="DelugePaths.cs" />
     <Compile Include="Filter.cs" />
     <Compile Include="Daemon\IDelugeDaemon.cs" />
+    <Compile Include="IAuthFile.cs" />
+    <Compile Include="IAuthFileReader.cs" />
+    <Compile Include="IAuthFileWriter.cs" />
+    <Compile Include="User.cs" />
     <Compile Include="Utility\ProcessHelper.cs" />
     <Compile Include="Rpc\RpcErrorException.cs" />
     <Compile Include="States.cs" />
@@ -83,12 +86,6 @@
       <Project>{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}</Project>
       <Name>Whenables</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="DaemonResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DaemonResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
