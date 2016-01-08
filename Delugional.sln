@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelugionalTests", "Delugion
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rencode-sharp", "Libraries\rencode-sharp\rencode-sharp\rencode-sharp.csproj", "{07A4623C-C9CD-474C-8793-1817E81E83D4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Whenables", "Libraries\Whenables\Whenables\Whenables.csproj", "{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,14 @@ Global
 		{07A4623C-C9CD-474C-8793-1817E81E83D4}.Release|Any CPU.ActiveCfg = Release|x86
 		{07A4623C-C9CD-474C-8793-1817E81E83D4}.Release|x86.ActiveCfg = Release|x86
 		{07A4623C-C9CD-474C-8793-1817E81E83D4}.Release|x86.Build.0 = Release|x86
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Debug|x86.Build.0 = Debug|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Release|x86.ActiveCfg = Release|Any CPU
+		{4A04E527-CB86-4E3F-8CD1-5B14F07982A7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

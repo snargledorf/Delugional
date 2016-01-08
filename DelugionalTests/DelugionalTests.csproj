@@ -62,7 +62,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="WhenListTests.cs" />
     <Compile Include="ZlibTests.cs" />
   </ItemGroup>
   <ItemGroup>
