@@ -13,6 +13,8 @@ namespace Delugional
 
         private readonly string pathToDaemon;
 
+        private bool disposed;
+
         public DelugeDaemon(string pathToDaemon = null)
         {
             if (pathToDaemon == null)
@@ -27,11 +29,6 @@ namespace Delugional
         }
 
         public Process Process { get; private set; }
-
-        public void Dispose()
-        {
-            throw new System.NotImplementedException();
-        }
 
         public bool Running => ProcessHelper.IsExecutableRunning(pathToDaemon);
 
@@ -80,7 +77,6 @@ namespace Delugional
         private string FindDefaultDaemon()
         {
             return GetProgramFilesDaemon();
-
         }
 
         private string GetProgramFilesDaemon()
@@ -104,6 +100,31 @@ namespace Delugional
             string programFiles = Environment.GetFolderPath(folder);
             string delugeFolder = Path.Combine(programFiles, DaemonResources.DelugeProgramFilesFolder);
             return Path.Combine(delugeFolder, DaemonResources.DaemonExecutableName);
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+
+            Dispose(true);
+            GC.SuppressFinalize(this);
+
+            disposed = true;
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
+            Process?.Close();
+            Process = null;
+        }
+
+        ~DelugeDaemon()
+        {
+            Dispose(false);
         }
     }
 }
