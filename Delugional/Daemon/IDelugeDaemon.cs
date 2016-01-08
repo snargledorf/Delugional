@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Delugional.Rpc;
 
-namespace Delugional
+namespace Delugional.Daemon
 {
     public interface IDelugeDaemon : IDisposable
     {
@@ -10,6 +11,6 @@ namespace Delugional
         void Stop();
 
         IDelugeRpc OpenRpc();
-        IDelugeRpc OpenRpcAsync();
+        Task<IDelugeRpc> OpenRpcAsync();
     }
 }

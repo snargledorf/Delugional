@@ -52,9 +52,9 @@
       <DependentUpon>DaemonResources.resx</DependentUpon>
     </Compile>
     <Compile Include="Deluge.cs" />
-    <Compile Include="DelugeDaemon.cs" />
+    <Compile Include="Daemon\DelugeDaemon.cs" />
     <Compile Include="Filter.cs" />
-    <Compile Include="IDelugeDaemon.cs" />
+    <Compile Include="Daemon\IDelugeDaemon.cs" />
     <Compile Include="Utility\ProcessHelper.cs" />
     <Compile Include="Rpc\RpcErrorException.cs" />
     <Compile Include="States.cs" />

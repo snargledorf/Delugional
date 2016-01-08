@@ -1,5 +1,6 @@
 ﻿using System;
 using Delugional;
+using Delugional.Daemon;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DelugionalTests

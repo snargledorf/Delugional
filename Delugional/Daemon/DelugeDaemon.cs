@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Delugional.Rpc;
 using Delugional.Utility;
 
-namespace Delugional
+namespace Delugional.Daemon
 {
     public class DelugeDaemon : IDelugeDaemon
     {
