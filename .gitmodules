@@ -3,4 +3,4 @@
 	url = https://github.com/fuzeman/rencode-sharp.git
 [submodule "Libraries/Whenables"]
 	path = Libraries/Whenables
-	url = git@github.com:snargledorf/Whenables.git
+	url = https://github.com/snargledorf/Whenables.git
